@@ -3,11 +3,13 @@ import './ProductList.css';
 import CartItem from './CartItem';
 import { addItem } from './CartSlice';
 import { useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 function ProductList({ onHomeClick }) {
   const [showCart, setShowCart] = useState(false);
   const [showPlants, setShowPlants] = useState(false); // State to control the visibility of the About Us page
   const [addedToCart, setAddedToCart] = useState({}); // State to track which products have been added to the cart
 
+  const cart = useSelector((state) => state.cart.items);
   const dispatch = useDispatch();
 
   const plantsArray = [
@@ -303,6 +305,10 @@ function ProductList({ onHomeClick }) {
     }));
   };
 
+  const calculateTotalQuantity = () => {
+    return cart.reduce((total, item) => total + item.quantity, 0);
+  };
+
   return (
     <div>
       <div className='navbar' style={styleObj}>
@@ -350,12 +356,17 @@ function ProductList({ onHomeClick }) {
                     id='mainIconPathAttribute'
                   />
                 </svg>
+                <span className='cart_quantity_count'>
+                  {calculateTotalQuantity()}
+                </span>
               </h1>
             </a>
           </div>
         </div>
       </div>
-      {!showCart ? (
+      {showCart ? (
+        <CartItem onContinueShopping={handleContinueShopping} />
+      ) : (
         <div className='product-grid'>
           {plantsArray.map((category, index) => (
             <div key={index}>
@@ -378,8 +389,11 @@ function ProductList({ onHomeClick }) {
                     </div>
                     <div className='product-cost'>${plant.cost}</div>
                     <button
-                      className='product-button'
-                      onClick={() => handleAddToCart(plant)}>
+                      className={`product-button ${
+                        addedToCart[plant.name] ? 'added-to-cart' : ''
+                      }`}
+                      onClick={() => handleAddToCart(plant)}
+                      disabled={addedToCart[plant.name]}>
                       Add to Cart
                     </button>
                   </div>
@@ -388,8 +402,6 @@ function ProductList({ onHomeClick }) {
             </div>
           ))}
         </div>
-      ) : (
-        <CartItem onContinueShopping={handleContinueShopping} />
       )}
     </div>
   );
